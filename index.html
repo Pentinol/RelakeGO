@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RelakeGO</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <div class="panel left-panel">
+            <div class="panel-header">
+                <h2>RelakeGO</h2>
+                <span class="material-icons">edit</span>
+            </div>
+            <div class="image-area" id="imageArea">
+                <canvas id="sourceCanvas" class="source-canvas"></canvas>
+                <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+                <canvas id="gridCanvas" class="grid-canvas"></canvas>
+                <div class="placeholder-message" id="placeholderMsg">
+                    <span class="material-icons">add_photo_alternate</span>
+                    <p>ПЕРЕТАЩИТЕ ИЗОБРАЖЕНИЕ ИЛИ НАЖМИТЕ ДЛЯ ЗАГРУЗКИ</p>
+                </div>
+            </div>
+            <div class="toolbar">
+                <button class="btn" id="loadBtn">
+                    <span class="material-icons">upload</span> ЗАГРУЗИТЬ
+                </button>
+                <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" hidden>
+                <div class="spacer"></div>
+                <button class="btn" id="resetPointsBtn" disabled>
+                    <span class="material-icons">refresh</span> СБРОС
+                </button>
+            </div>
+            <div class="info-panel">
+                <div class="info-item">
+                    <span class="material-icons">adjust</span>
+                    <span>УГЛЫ</span>
+                </div>
+                <div class="info-item">
+                    <span class="material-icons">show_chart</span>
+                    <span>РЕБРА</span>
+                </div>
+                <div class="info-item">
+                    <span class="material-icons">pan_tool</span>
+                    <span>ОБЛАСТЬ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Центральная панель: Texture Preview -->
+        <div class="panel center-panel">
+            <div class="panel-header">
+                <h2>TEXTURE PREVIEW</h2>
+                <span class="material-icons">texture</span>
+            </div>
+            
+            <div class="preview-container">
+                <div class="texture-preview">
+                    <canvas id="resultCanvas" width="1024" height="1024"></canvas>
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="spinner"></div>
+                        <span>ОБРАБОТКА...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="texture-controls">
+                <div class="controls-row">
+                    <div class="control-group">
+                        <label>РАЗРЕШЕНИЕ</label>
+                        <select id="resolutionSelect">
+                            <option value="512">512 x 512</option>
+                            <option value="1024" selected>1024 x 1024</option>
+                            <option value="2048">2048 x 2048</option>
+                            <option value="4096">4096 x 4096</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>ФИЛЬТР</label>
+                        <select id="filterSelect">
+                            <option value="none">БЕЗ ФИЛЬТРА</option>
+                            <option value="grayscale">ЧЕРНО-БЕЛЫЙ</option>
+                            <option value="sepia">СЕПИЯ</option>
+                            <option value="invert">ИНВЕРСИЯ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn primary large" id="extractBtn" disabled>
+                    <span class="material-icons">auto_awesome</span> ПРЕОБРАЗОВАТЬ В ТЕКСТУРУ
+                </button>
+                <div class="export-buttons">
+                    <button class="btn" id="exportPng">PNG</button>
+                    <button class="btn" id="exportJpg">JPG</button>
+                    <button class="btn" id="exportWebp">WEBP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая панель: PBR Maps -->
+        <div class="panel right-panel">
+            <div class="panel-header">
+                <h2>PBR MAPS</h2>
+                <span class="material-icons">layers</span>
+            </div>
+            
+            <div class="pbr-container">
+                <div class="control-section">
+                    <div class="section-header">
+                        <span class="material-icons">map</span>
+                        <h3>ГЕНЕРАЦИЯ КАРТ</h3>
+                    </div>
+                    
+                    <div class="control-block">
+                        <label>ТИП КАРТЫ</label>
+                        <select id="mapTypeSelect" class="large-select">
+                            <option value="none">ВЫБЕРИТЕ ТИП КАРТЫ</option>
+                            <option value="normal">NORMAL MAP</option>
+                            <option value="roughness">ROUGHNESS</option>
+                            <option value="metallic">METALLIC</option>
+                            <option value="ao">AMBIENT OCCLUSION</option>
+                            <option value="height">HEIGHT MAP</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-block">
+                        <label>ИНТЕНСИВНОСТЬ <span id="intensityValue" class="value-display">1.5</span></label>
+                        <input type="range" id="intensitySlider" min="0" max="3" value="1.5" step="0.1" class="large-slider">
+                    </div>
+                    
+                    <div class="control-block">
+                        <label>ДЕТАЛИЗАЦИЯ <span id="detailValue" class="value-display">1.0</span></label>
+                        <input type="range" id="detailSlider" min="0.1" max="2" value="1" step="0.1" class="large-slider">
+                    </div>
+                    
+                    <div class="checkbox-block">
+                        <label>ИНВЕРТИРОВАТЬ</label>
+                        <input type="checkbox" id="invertMap" class="large-checkbox">
+                    </div>
+                    
+                    <button class="btn primary large full-width" id="generateMapBtn" disabled>
+                        <span class="material-icons">build</span> СГЕНЕРИРОВАТЬ КАРТУ
+                    </button>
+                </div>
+
+                <div class="control-section" id="mapAdvanced">
+                    <div class="section-header">
+                        <span class="material-icons">tune</span>
+                        <h3>ДОПОЛНИТЕЛЬНО</h3>
+                    </div>
+                    
+                    <div class="control-block">
+                        <label>КОНТРАСТ <span id="contrastValue" class="value-display">1.2</span></label>
+                        <input type="range" id="contrast" min="0" max="3" value="1.2" step="0.1" class="large-slider">
+                    </div>
+                    
+                    <div class="control-block">
+                        <label>ЯРКОСТЬ <span id="brightnessValue" class="value-display">1.0</span></label>
+                        <input type="range" id="brightness" min="0" max="2" value="1" step="0.1" class="large-slider">
+                    </div>
+                </div>
+
+                <div class="preview-section">
+                    <div class="section-header">
+                        <span class="material-icons">visibility</span>
+                        <h3>ПРЕВЬЮ</h3>
+                    </div>
+                    <div class="map-preview">
+                        <canvas id="previewCanvas" width="256" height="256"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
